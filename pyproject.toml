@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "archituner"
+version = "0.1.0"
+description = "Renders conformance between an ARCHITECTURE.md contract and the code it governs"
+requires-python = ">=3.11"
+# No dependencies, and that is a property of the tool rather than an omission:
+# decision 10 puts it on the standard library, so a contract can be read on any
+# machine that has Python without a install step of its own.
+dependencies = []
+
+[project.scripts]
+# techspec states the invocation as `archituner <path>`. It resolves to the same
+# callable `python3 -m archituner` reaches, so the two paths cannot drift apart.
+archituner = "archituner.cli:console"
+
+[tool.setuptools.packages.find]
+include = ["archituner*"]

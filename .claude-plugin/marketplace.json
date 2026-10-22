@@ -1,0 +1,8 @@
+{
+  "name": "archituner",
+  "description": "architect: designs, roasts, maintains and validates a project's ARCHITECTURE.md - the layer and dependency contract for AI coding agents.",
+  "owner": { "name": "filipaldi" },
+  "plugins": [
+    { "name": "architect", "source": "./agents-skills" }
+  ]
+}

@@ -1,0 +1,6 @@
+# Dependencies of this repository, installed into .venv (see AGENTS.md).
+# The tool itself is stdlib-only per decision 10; the editable install below
+# makes `python3 -m archituner` resolve inside .venv.
+-e .
+pytest
+pyyaml

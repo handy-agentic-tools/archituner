@@ -1,0 +1,12 @@
+# One matrix: a row per tier, a column per provider. A dispatch names a tier,
+# never a provider's alias; replace-tiers.sh substitutes the chosen provider's
+# cell for every `agent-tier: <name>` token at build time.
+#
+# zcode cells are the two frontmatter fields a ZCode agent file pins with,
+# exactly as it reads them: model: and thoughtLevel:, both named in the cell.
+# replace-tiers.sh emits them as the two real lines.
+tiers:
+  # tier        claude-code  zcode
+  cheap:        haiku        {model: glm-5.3-flash, thoughtLevel: low}
+  standard:     sonnet       {model: glm-5.3-flash, thoughtLevel: high}
+  deep:         opus         {model: glm-5.3, thoughtLevel: max}
