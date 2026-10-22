@@ -1,0 +1,42 @@
+name: Bug report
+description: archituner crashed, refused your plan, or reported something wrong.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: command
+    attributes:
+      label: 1. What you ran
+      description: The exact command.
+      placeholder: archituner ARCHITECTURE.md --check
+      render: sh
+    validations:
+      required: true
+  - type: textarea
+    id: got
+    attributes:
+      label: 2. What you got
+      description: Paste the output, or describe what the page showed.
+      render: console
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 3. What you expected
+      description: "One or two sentences. For a wrong mark: which pair of floors, which mark you expected, and why."
+    validations:
+      required: true
+  - type: textarea
+    id: plan
+    attributes:
+      label: 4. Your plan (optional)
+      description: The YAML block from the top of your ARCHITECTURE.md. Remove anything private.
+      render: yaml
+  - type: input
+    id: versions
+    attributes:
+      label: 5. Versions
+      description: "Output of: pip show archituner | head -2 && python3 --version"
+      placeholder: "archituner 0.1.0, Python 3.12.4"
+    validations:
+      required: true
