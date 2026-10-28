@@ -1,39 +1,43 @@
 import os
 
 from archituner.contract import read_contract
+from archituner.run.checkouts import checkout_marks
+from archituner.run.checkouts import package_roots
+from archituner.run.checkouts import same_project
 from archituner.source import cross_contract_uses
 
 
 def sibling_contracts(tree):
     parent = os.path.dirname(os.path.abspath(tree))
     here = os.path.abspath(tree)
+    own = checkout_marks(here)
     try:
         entries = sorted(os.listdir(parent))
     except OSError:
         return []
     found = []
     for name in entries:
-        candidate = sibling_contract(os.path.join(parent, name), here)
+        candidate = sibling_contract(os.path.join(parent, name), here, own)
         if candidate:
             found.append(candidate)
     return found
 
 
-def sibling_contract(directory, here):
+def sibling_contract(directory, here, own):
     if directory == here:
         return None
     if not os.path.isdir(directory):
         return None
     candidate = os.path.join(directory, "ARCHITECTURE.md")
-    if os.path.exists(candidate):
-        return candidate
-    return None
+    if not os.path.exists(candidate):
+        return None
+    if same_project(checkout_marks(directory), own):
+        return None
+    return candidate
 
 
 def cross_contract_names(tree, own_layers):
-    roots = {glob.split("/")[0].split("*")[0].strip("/")
-             for globs in own_layers.values() for glob in globs}
-    roots.discard("")
+    roots = package_roots(own_layers)
     if not roots:
         return None
     trees = []

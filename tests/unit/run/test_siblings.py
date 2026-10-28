@@ -32,6 +32,23 @@ dependencies:
 
 LAYERS = {"api": ["api_*"], "core": ["core_*"], "model": ["model_*"]}
 
+OTHER_CONTRACT = """---
+layers:
+  zeta: ["zeta_*"]
+  eta:  ["eta_*"]
+
+dependencies:
+  allow:
+    - zeta -> eta
+  forbid:
+    - eta -> zeta
+---
+
+## Boundaries
+
+- `eta -> zeta`: a consumer never reaches back to the thing that constructed it.
+"""
+
 
 def plant(tree, rel, text):
     path = os.path.join(tree, rel)
@@ -93,6 +110,37 @@ def test_siblings_naming_nothing_answer_none():
     plant(parent, "quiet/ARCHITECTURE.md", CONTRACT)
     plant(parent, "quiet/other.py", "VALUE = 1\n")
     assert cross_contract_names(own, LAYERS) is None
+
+
+def test_a_sibling_declaring_a_root_this_tree_declares_is_not_a_subscriber():
+    parent = tempfile.mkdtemp()
+    own = os.path.join(parent, "own")
+    os.makedirs(own)
+    plant(own, "ARCHITECTURE.md", CONTRACT)
+    plant(parent, "twin/ARCHITECTURE.md", CONTRACT)
+    plant(parent, "other/ARCHITECTURE.md", OTHER_CONTRACT)
+    found = sibling_contracts(own)
+    assert found == [os.path.join(parent, "other", "ARCHITECTURE.md")], \
+        "a sibling whose contract declares a package root this tree also " \
+        "declares is another checkout of the same project, not a " \
+        "subscriber; a sibling of different roots stays one"
+
+
+def test_the_cross_contract_reading_skips_a_sibling_of_the_same_roots():
+    parent = tempfile.mkdtemp()
+    own = os.path.join(parent, "own")
+    os.makedirs(own)
+    plant(own, "ARCHITECTURE.md", CONTRACT)
+    plant(parent, "twin/ARCHITECTURE.md", CONTRACT)
+    plant(parent, "twin/stray.py", "import core_\n")
+    plant(parent, "other/ARCHITECTURE.md", OTHER_CONTRACT)
+    plant(parent, "other/stray.py", "import core_\n")
+    found = cross_contract_names(own, LAYERS)
+    assert found == {"names": [{"contract": "other", "file": "stray.py",
+                                "module": "core_"}],
+                     "contracts": ["other"]}, \
+        "the cross-contract reading counts only siblings whose contract " \
+        "declares no package root this tree declares"
 
 
 if __name__ == "__main__":

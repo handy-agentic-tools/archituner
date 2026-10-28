@@ -10,6 +10,7 @@ from archituner.run.baseline import stored_baseline
 from archituner.run.outcomes import page_lines
 from archituner.run.outcomes import quoted_lines
 from archituner.run.outcomes import visible_claims
+from archituner.run.paths import file_axis
 
 
 def zero_claim(result):
@@ -31,6 +32,7 @@ def refused_outcome(out, refusal, contract_path, reason, report):
 def perform(contract_path, out, builder, refusal, narrowing=None, fmt=None):
     report = []
     narrowing = narrowing if narrowing is not None else {}
+    tree = os.path.dirname(os.path.abspath(contract_path))
     stored = stored_baseline(contract_path, builder is None)
     try:
         result = analyse(contract_path, stored)
@@ -39,12 +41,13 @@ def perform(contract_path, out, builder, refusal, narrowing=None, fmt=None):
     unclaimed = zero_claim(result)
     if builder is None:
         return baseline_outcome(contract_path, result, unclaimed, report)
+    narrowing, missing = file_axis(tree, narrowing)
     result["baseline"] = os.path.basename(baseline_path(contract_path))
     result["change"] = compare(result, stored) if stored else None
     narrowed = dict(narrow(result, narrowing),
-                    claim_findings=visible_claims(result.claims, narrowing))
-    quoted = quoted_lines(os.path.dirname(os.path.abspath(contract_path)),
-                          narrowed["witnesses"])
+                    claim_findings=visible_claims(result.claims, narrowing)
+                    + missing)
+    quoted = quoted_lines(tree, narrowed["witnesses"])
     colour = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
     answer = builder(result, narrowed, quoted, unclaimed, fmt, colour)
     report += answer["lines"]

@@ -31,8 +31,6 @@ Every key but `schema`, `crossings`, `status`, `reason` and `breaches` is the an
 | `findings` | every finding, each carrying its text and what produced it |
 | `breaches` | the limit breaches, each carrying its file, the number and the value over the limit - enough alone to make a run `divergent` |
 | `change` | the comparison against the stored baseline - improved, unchanged or regressed per pair, file and layer - or `null` with none stored |
-| `regions` | the coverage tree as placed boxes - each region's `x`, `y`, `width` and `height` on a fixed canvas |
-| `stack` | the layer stack's geometry - a node box per layer, and every drawn edge's arc endpoints |
 | `crossings` | one entry per witness of every realised pair - convergence witnesses too, not only divergence - each carrying `file`, `line`, `module`, `source`, `target`, `kind`, `state` and `code`, the import statement's own line of source |
 
 A run given filters carries them in a `filters` key, and narrows `crossings` and `files` to what survives them while `pairs` stays whole.

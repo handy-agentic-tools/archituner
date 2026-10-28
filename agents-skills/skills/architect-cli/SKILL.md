@@ -26,7 +26,7 @@ python3 -m archituner <path>/ARCHITECTURE.md --baseline
 
 **Keep these spellings identical to the `--json` line `references/validate.md` opens with.** Two spellings of one command drift, and a reader comparing two runs is then reading answers to two different questions.
 
-**Name a mode flag on every invocation this skill spells.** A bare `python3 -m archituner <path>/ARCHITECTURE.md` names no mode, and nothing here assumes what it prints or writes; the HTML page a run can draw is `architecture-ui`'s to read, not this skill's.
+**Spell a mode flag, or none and read the check.** A bare `python3 -m archituner <path>/ARCHITECTURE.md` is the check gate - the same lines, the same exits, as `--check` - and the HTML page is drawn by a run `-o` names a file for, `architecture-ui`'s to spell and to read.
 
 | Flag | What it prints | Exit |
 |---|---|---|

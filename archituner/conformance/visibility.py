@@ -10,9 +10,14 @@ def pair_visible(pair, narrowing):
             and len(pair["imports"]) >= narrowing.get("min-weight", 0))
 
 
+def under(path, asked):
+    asked = asked.rstrip("/")
+    return not asked or (path + "/").startswith(asked + "/")
+
+
 def file_visible(path, narrowing):
     paths = narrowing.get("file")
-    return not paths or path in paths
+    return not paths or any(under(path, asked) for asked in paths)
 
 
 def scoped_pair(pair, narrowing):

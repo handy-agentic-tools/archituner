@@ -1,6 +1,6 @@
 {
   "name": "architect",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Designs, roasts, maintains and validates a project's ARCHITECTURE.md - the layer and dependency contract for AI coding agents.",
   "author": {
     "name": "filipaldi",
