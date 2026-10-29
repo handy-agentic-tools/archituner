@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "archituner"
-version = "0.1.0"
+version = "0.1.1"
 description = "Renders conformance between an ARCHITECTURE.md contract and the code it governs"
 requires-python = ">=3.11"
 # No dependencies, and that is a property of the tool rather than an omission:

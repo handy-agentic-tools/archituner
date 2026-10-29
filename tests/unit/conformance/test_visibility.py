@@ -71,6 +71,14 @@ def test_a_fed_path_and_the_axes_answer_one_question_together():
     assert scoped_pairs([inside, unasked, unwitnessed], asked) == [inside]
 
 
+def test_a_named_directory_holds_the_files_below_it_and_none_beside():
+    asked = {"file": ["pkg/"]}
+    assert (file_visible("pkg/kept.py", asked),
+            file_visible("pkg/drop.py", asked),
+            file_visible("pkgb/kept.py", asked),
+            file_visible("pkg.py", asked)) == (True, True, False, False)
+
+
 def drive():
     return subprocess.run(
         [sys.executable, "-m", "archituner", CONTRACT,
@@ -103,8 +111,8 @@ RESULT = {"pairs": PAIRS,
                     {"path": "b.py", "layer": "run"}]}
 
 
-def answers(narrowing, expected):
-    assert narrow(RESULT, narrowing) == expected
+def answers(narrowing, expected, whole=RESULT):
+    assert narrow(whole, narrowing) == expected
 
 
 def test_narrow_answers_the_whole_result_when_nothing_is_asked():
@@ -118,6 +126,30 @@ def test_narrow_drops_unasked_states_witnesses_and_paths_together():
     answers(asked, {"pairs": [PAIRS[0]], "breaches": [RESULT["breaches"][0]],
                     "files": [RESULT["files"][0]], "witnesses": [WITNESS],
                     "diverged": False, "narrowing": asked})
+
+
+NESTED = {"pairs": [
+    {"source": "cli", "target": "run", "kind": "allow",
+     "state": "convergence", "reason": "",
+     "imports": [{"file": "pkg/kept.py", "module": "m", "line": 1}]},
+    {"source": "run", "target": "cli", "kind": "forbid",
+     "state": "divergence", "reason": "",
+     "imports": [{"file": "other/drop.py", "module": "n", "line": 2}]}],
+    "breaches": [{"file": "pkg/kept.py", "number": "defs", "value": 9,
+                  "limit": 8, "reason": None},
+                 {"file": "other/drop.py", "number": "size", "value": 99,
+                  "limit": 21, "reason": None}],
+    "files": [{"path": "pkg/kept.py", "layer": "cli"},
+              {"path": "other/drop.py", "layer": "run"}]}
+KEPT = {"file": "pkg/kept.py", "module": "m", "line": 1}
+
+
+def test_narrow_with_a_named_directory_keeps_only_what_sits_below_it():
+    asked = {"file": ["pkg/"]}
+    answers(asked, {"pairs": [dict(NESTED["pairs"][0], imports=[KEPT])],
+                    "breaches": [NESTED["breaches"][0]],
+                    "files": [NESTED["files"][0]], "witnesses": [KEPT],
+                    "diverged": False, "narrowing": asked}, NESTED)
 
 
 if __name__ == "__main__":
