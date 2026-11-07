@@ -1,0 +1,79 @@
+# A merge to main is a release: this tags the version pyproject.toml carries
+# and publishes that version's section of CHANGELOG.md, with no manual step.
+# publication/ ships at the public tree's root, so this file lands at
+# .github/workflows/release.yml there, as the issue templates already do.
+name: release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # a manual rerun after a failed run
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    # only the public repo ever releases; nowhere else may this run
+    if: github.repository == 'handy-agentic-tools/archituner'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: read the version from pyproject.toml
+        id: version
+        run: |
+          # tomllib, not a regex: pyproject.toml is structured data
+          version=$(python3 -c '
+          import tomllib
+          with open("pyproject.toml", "rb") as f:
+              print(tomllib.load(f)["project"]["version"])
+          ')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: a merge that does not move the version is a no-op
+        id: released
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v${{ steps.version.outputs.version }}"
+          if gh release view "$tag" > /dev/null 2>&1; then
+            echo "$tag already released"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: extract this version's notes from CHANGELOG.md
+        if: steps.released.outputs.skip != 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python3 - <<'EOF'
+          import os
+          import sys
+
+          version = os.environ["VERSION"]
+          heading = "## " + version + " "
+          lines = open("CHANGELOG.md", encoding="utf-8").read().splitlines()
+          start = next((i for i, l in enumerate(lines) if l.startswith(heading)), None)
+          if start is None:
+              sys.exit("CHANGELOG.md has no '%s' section: the version moved without release notes" % heading.strip())
+          end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+          # trim blank lines at the edges only; interior blank lines stay
+          notes = "\n".join(lines[start + 1:end]).strip("\n")
+          if not notes.strip():
+              sys.exit("the '%s' section of CHANGELOG.md is empty: nothing to release" % heading.strip())
+          open("notes.md", "w", encoding="utf-8").write(notes + "\n")
+          EOF
+
+      - name: tag and release
+        if: steps.released.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=${{ steps.version.outputs.version }}
+          # the tag is created here too, pinned to the commit main was pushed to
+          gh release create "v$version" \
+            --target "$GITHUB_SHA" \
+            --title "archituner $version" \
+            --notes-file notes.md \
+            --latest

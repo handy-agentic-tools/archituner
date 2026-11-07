@@ -270,6 +270,7 @@ cp -R archituner/agents-skills/skills/* ~/.agents/skills/
 - `from pkg import gone` with gone an absent module still counts as an edge to pkg, because a name defined in pkg cannot be told from a missing module without reading pkg's names.
 - Files your `.gitignore` excludes are never walked, and a file that does not parse is read as having no imports.
 - Your own package named like a standard library module (a local `json` or `logging`) is never judged.
+- Files under `ignore` escape the unclaimed-file check: this repository's `plans/repro_*.py` scripts stay open, nine of them import the tool in-process, and closing that route is its own issue.
 - It supervises the floors, what rests on what, and the limits. It does not replace tests or code review.
 - Version 0.1.0. The plan's format may still change.
 - No interactive page yet: it comes in the next release.
