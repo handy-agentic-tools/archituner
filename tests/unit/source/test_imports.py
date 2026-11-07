@@ -19,13 +19,27 @@ def snippet_tree(files):
     return directory
 
 
+def planted(source):
+    tree = snippet_tree({"pkg/__init__.py": "",
+                         "pkg/mod.py": "VALUE = 1\n",
+                         "pkg/cli.py": source})
+    records = {
+        "pkg/__init__.py": {"path": "pkg/__init__.py", "layer": "api",
+                            "module": "pkg", "imports": [], "importers": []},
+        "pkg/mod.py": {"path": "pkg/mod.py", "layer": "mod",
+                       "module": "pkg.mod", "imports": [], "importers": []},
+        "pkg/cli.py": {"path": "pkg/cli.py", "layer": "cli",
+                       "module": "pkg.cli", "imports": [], "importers": []}}
+    by_module = {"pkg": "pkg/__init__.py", "pkg.mod": "pkg/mod.py",
+                 "pkg.cli": "pkg/cli.py"}
+    return tree, records, by_module
+
+
 def test_package_root_dot_names_from_tree_root():
     naming = archituner.source.imports
     named = (naming.module_of("pkg/x.py", ""),
              naming.module_of("tests/test_x.py", ""))
     assert named == ("pkg.x", "tests.test_x"), named
-    by_module = {"pkg.x": "pkg/x.py", "tests.test_x": "tests/test_x.py"}
-    assert naming.resolve("pkg.x", by_module, ()) == "pkg/x.py", by_module
 
 
 def test_declared_subtree_root_still_names_as_before():
@@ -64,9 +78,51 @@ def test_an_import_from_a_sublayer_is_judged_by_its_ancestors_pair():
     assert set(edges) == {("a", "b"), ("a.child2", "a.child")}, sorted(edges)
 
 
+def test_an_exact_module_resolves_to_its_path():
+    by_module = {"pkg": "pkg/__init__.py", "pkg.mod": "pkg/mod.py"}
+    assert archituner.source.imports.resolve(
+        "pkg.mod", by_module, ()) == "pkg/mod.py", by_module
+
+
+def test_a_name_inside_a_present_module_still_resolves():
+    tree, records, by_module = planted("from pkg.mod import name\n")
+    archituner.source.imports.resolve_imports(tree, records, by_module, None)
+    paths = [i["path"] for i in records["pkg/cli.py"]["imports"]]
+    assert set(paths) == {"pkg/mod.py"}, paths
+
+
+def test_a_from_import_of_an_absent_module_adds_no_entry_and_no_edge():
+    tree, records, by_module = planted("from pkg.gone.deep import x\n")
+    edges = archituner.source.imports.resolve_imports(
+        tree, records, by_module, None)
+    observed = (records["pkg/cli.py"]["imports"], edges)
+    assert observed == ([], {}), observed
+
+
+def test_an_import_of_an_absent_module_adds_no_entry_and_no_edge():
+    tree, records, by_module = planted("import pkg.gone\n")
+    edges = archituner.source.imports.resolve_imports(
+        tree, records, by_module, None)
+    observed = (records["pkg/cli.py"]["imports"], edges)
+    assert observed == ([], {}), observed
+
+
+def test_an_import_of_a_deeper_absent_module_adds_no_entry_and_no_edge():
+    tree, records, by_module = planted("import pkg.gone.deeper.mod\n")
+    edges = archituner.source.imports.resolve_imports(
+        tree, records, by_module, None)
+    observed = (records["pkg/cli.py"]["imports"], edges)
+    assert observed == ([], {}), observed
+
+
 TESTS = (test_package_root_dot_names_from_tree_root,
          test_declared_subtree_root_still_names_as_before,
-         test_an_import_from_a_sublayer_is_judged_by_its_ancestors_pair)
+         test_an_import_from_a_sublayer_is_judged_by_its_ancestors_pair,
+         test_an_exact_module_resolves_to_its_path,
+         test_a_name_inside_a_present_module_still_resolves,
+         test_a_from_import_of_an_absent_module_adds_no_entry_and_no_edge,
+         test_an_import_of_an_absent_module_adds_no_entry_and_no_edge,
+         test_an_import_of_a_deeper_absent_module_adds_no_entry_and_no_edge)
 
 failed = []
 for test in TESTS:

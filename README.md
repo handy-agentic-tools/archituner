@@ -267,6 +267,7 @@ cp -R archituner/agents-skills/skills/* ~/.agents/skills/
 <summary>Limits</summary>
 
 - Python projects only, and only import statements are judged: dynamic imports (`importlib.import_module`, `__import__`) are invisible.
+- `from pkg import gone` with gone an absent module still counts as an edge to pkg, because a name defined in pkg cannot be told from a missing module without reading pkg's names.
 - Files your `.gitignore` excludes are never walked, and a file that does not parse is read as having no imports.
 - Your own package named like a standard library module (a local `json` or `logging`) is never judged.
 - It supervises the floors, what rests on what, and the limits. It does not replace tests or code review.

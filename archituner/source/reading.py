@@ -17,12 +17,13 @@ def from_stem(node, own_module, is_init):
 
 def import_entries(node, own_module, is_init):
     if isinstance(node, ast.Import):
-        return [(alias.name, node.lineno) for alias in node.names]
+        return [(alias.name, node.lineno, False) for alias in node.names]
     if not isinstance(node, ast.ImportFrom):
         return []
     stem = from_stem(node, own_module, is_init)
-    return [(stem, node.lineno)] + [(f"{stem}.{alias.name}", node.lineno)
-                                    for alias in node.names]
+    aliases = [(f"{stem}.{alias.name}", node.lineno, True)
+               for alias in node.names]
+    return [(stem, node.lineno, False)] + aliases
 
 
 def imports_of(tree, path, own_module):
@@ -53,9 +54,9 @@ def judging_pair(src, tgt):
     return a, b
 
 
-def resolved_path(candidate, path_by_module, prefixes):
+def resolved_path(candidate, path_by_module, prefixes, may_be_name=False):
     probe = candidate
-    while probe:
+    for _ in range(1 + may_be_name):
         if probe in path_by_module:
             return path_by_module[probe]
         probe = probe.rpartition(".")[0]
