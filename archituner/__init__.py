@@ -1,5 +1,3 @@
-"""The package root: the names one import away, and no module of its own."""
-
 from archituner.conformance import baseline_of
 from archituner.conformance import compare
 from archituner.conformance import measure_shape

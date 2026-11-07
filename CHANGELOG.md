@@ -2,14 +2,11 @@
 
 ## Unreleased
 
-- Every dimension on the page is a token computed from one base unit: the type, the spacing, the strokes, the dashes and the corners all derive from it, so the page follows the browser's font-size setting and shrinks on a narrow viewport; every control answers the keyboard with one focus ring and the pointer with a hover, the buttons share one idiom, and the page a refused contract earns wears the page's own typeface.
-- When a search finds more records than the eight its row shows, the row says how many: the results row ends with "8 of N", so the cap at eight no longer reads as the whole match.
-- The `architecture-ui` and `architect-cli` skills follow the page on main: the page is written only with `-o`, the views are the layers stack, the pair matrix and the coverage treemap with the panel beside them, and a bare run is the check.
-- All large explanatory labels are gone from the page: the sentence that opened each view, the empty-state sentence, the provenance and dropped-pair lines, the coverage caption and tally sentence, the panel hint and panel captions, and every move explanation leave the page for the Help; the verdict headline, control names, values, aria-labels and tooltips stay.
-- A name holding an apostrophe, an ampersand, a less-than or a quote no longer truncates the page: every measured name reaches its attribute and its text through one escape, so the page shows it whole and a click on it selects what it names.
-- The `files` view is gone from the page: the panel's all files tab carries the list, and search still reaches every file.
-- The `surface` view is gone from the page: the views are layers, matrix and coverage, and `--json` prints the same bytes as before.
-- The `shape` view is gone from the page: the whole-project numbers it showed - the longest chain, connections in use, the layer the most others rely on - are in the panel on the right.
+## 0.1.2 - 2026-10-30
+
+A patch release: one fix to the check.
+
+- An import of a module that is not in the tree no longer counts as an edge to its parent package, so a guarded import of a package a release leaves out is not a divergence.
 
 ## 0.1.1 - 2026-10-28
 
