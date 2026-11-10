@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.3 - 2026-11-07
+
+A patch release: the check gets stricter.
+
+- A Python file no layer claims now fails `--check` when it sits in a directory holding a claimed file, imports a claimed file or is imported by one, so a project that passed on 0.1.2 can fail on 0.1.3: the check names the file, and the way out is claiming it into a layer or listing it under `ignore` in ARCHITECTURE.md to declare it an exception.
+
 ## 0.1.2 - 2026-10-30
 
 A patch release: one fix to the check.

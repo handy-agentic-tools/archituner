@@ -20,6 +20,7 @@ from archituner.source import measure_limits
 from archituner.source import read_surface
 from archituner.source import resolve_imports
 from archituner.source.entry import entry_layer
+from archituner.source.unclaimed import unclaimed_findings
 
 
 class Analysis(dict):
@@ -41,6 +42,7 @@ def analyse(contract_path, stored=None):
     findings += claim_findings
 
     edges = resolve_imports(tree, files, path_by_module, retry_prefix)
+    claims += unclaimed_findings(files)
 
     sections = prose_sections(body)
     cells = layers_table(sections.get("Layers"))

@@ -33,6 +33,7 @@ limits:
     - "cognitive `tests_lints`: 30 - one rule over source text"
 
 layers:
+  api:          ["archituner/__init__.py"]
   cli:          ["archituner/cli/**", "archituner/__main__.py"]
   run:          ["archituner/run/**"]
   report:       ["archituner/report/**"]
@@ -69,6 +70,12 @@ dependencies:
     - tests_unit -> source
     - tests_unit -> matching
     - tests_unit -> vocabulary
+    - api -> run
+    - api -> conformance
+    - api -> contract
+    - api -> source
+    - api -> matching
+    - tests_unit -> api
   forbid:
     - cli -> conformance
     - cli -> contract
@@ -181,6 +188,24 @@ dependencies:
     - tests_lints -> tests_unit
     - tests_lints -> tests_integration
     - tests_lints -> runner
+    - api -> cli
+    - api -> report
+    - api -> vocabulary
+    - api -> tests_unit
+    - api -> tests_integration
+    - api -> runner
+    - api -> tests_lints
+    - cli -> api
+    - run -> api
+    - report -> api
+    - conformance -> api
+    - contract -> api
+    - source -> api
+    - matching -> api
+    - vocabulary -> api
+    - tests_integration -> api
+    - runner -> api
+    - tests_lints -> api
 
 naming:
   - "archituner/** imports only the Python standard library and archituner itself"
@@ -191,6 +216,7 @@ naming:
 
 | Layer | Home | Responsibility | Rationale |
 |---|---|---|---|
+| api | `archituner/__init__.py` | Holds the names a caller reaches with one import of the package, each re-exported from the layer that defines it, and defines none of its own | a re-export is an import, so the file that holds them is claimed and judged like any other, and the package root cannot become a route around a rule |
 | cli | `archituner/cli/`, and `archituner/__main__.py` as the entry point nothing imports | Turns the arguments into a stated intent, chooses which artifact the intent asks for and hands `run` that artifact's builder as a value, and turns the outcome into an exit code | the invocation is the part a second consumer replaces first, so the work must be reachable without it, and an artifact left out of a release is one no import beneath the invocation names |
 | run | `archituner/run/` | Executes one intent end to end: orders the stages, passes each one's value to the next, calls the builder it is handed on the reading, reads and writes every file that is neither the contract nor the analysed tree, and decides whether the run succeeded; it names no artifact | the order of the stages is a decision of its own, and a decision belonging to no layer is one each caller reinvents |
 | report | `archituner/report/` | Builds the text artifacts: the check report, the terminal and markdown reading, the machine document, and the sections they are assembled from | the text is what an agent and a gate read, so it changes with the gate's needs alone |
@@ -213,6 +239,7 @@ naming:
 - `conformance -> *` except `vocabulary`: the tool's one claim is refutable only if it is a pure function of values, so the contract and the file graph arrive as arguments and never as something this layer went to get; fetching either is `run`'s.
 - `contract -> *` except `matching`, `vocabulary`: knowing anything about the analysed tree would let a rule of the format be decided by what some tree happens to hold, so what the block means for real paths is `source`'s question and what the tree lacks is `conformance`'s finding.
 - `source -> *` except `matching`, `vocabulary`: the language adapter is the seam a second language replaces whole, so it must not know what a conformance state is, what the contract's prose says, or that an artifact exists; it answers what the tree holds and stops.
+- `api -> *` except `run`, `conformance`, `contract`, `source`, `matching`; `* -> api` except `tests_unit`: the package root only re-exports, so it names the layers whose names it carries and nothing else, and no layer of the tool imports it, because a stage that took a name through the root would hide which layer it depends on; a unit test may, since the root is the import a caller writes.
 - `cli -> *` except `run`, `report`, `vocabulary`: an invocation that reaches a stage directly has bound the stages to argument parsing, and the second consumer then has to satisfy an argument parser to run anything.
 - `run -> cli`: the sequence must be executable with no invocation present, or it can only be tested through the one that exists.
 - `run -> matching`: the orchestrator constructs and orders, so a root reaching into glob internals has taken over a layer's job and that layer can no longer be reasoned about alone.
@@ -290,8 +317,9 @@ naming:
 - **This file states the shape this tool is meant to have.** Where the code differs, the code is what moves, and a gap the size of the whole tree is the migration rather than evidence against the contract.
 - Machine-checked: every `forbid` edge, and the totality of the pair set - each ordered pair of layers named exactly once across the two lists; and every number under `limits`, each file against the default or the layer's own figure.
 - Reviewer judgement, and it is most of the words here: both `naming` rules, every line under `## Invariants`, and every Responsibility and Rationale cell. **No tool reads them**, and none is claimed to.
-- Not claimed, deliberately: `archituner/__init__.py`, which is the package root and holds no module of its own; the project's own documents; and anything the repository's `.gitignore` excludes. Any other unclaimed source path is drift.
-- The re-exports `archituner/__init__.py` holds produce no edge, and are therefore a route around every rule here that only a reviewer closes. Also not claimed: a derivation script the product does not ship, whose output a test pins.
+- Machine-checked as well: an unclaimed source file in governed territory - one that lies in a directory holding a claimed file, that imports a claimed file, or that a claimed file imports - fails `--check`, and its remedy is a claim, never an `ignore`.
+- Not claimed, deliberately: the project's own documents, and anything the repository's `.gitignore` excludes.
+- Also not claimed: a derivation script the product does not ship, whose output a test pins; it lies outside governed territory and imports nothing of the tool.
 - Out of scope: what may block and who owns a thread. The generator is a batch run that holds no thread of its own, and the rendered artifact's own responsiveness is a budget measured in interactions.
 - What a `forbid` edge means is that no **import** crosses it, which is narrower than the boundary it names: an edge is also crossed when a layer is handed an object of another and calls through it, when a routine is written a second time rather than imported, and when a stage does the next one's work inline instead of returning a value. Those are the reviewer's.
 
