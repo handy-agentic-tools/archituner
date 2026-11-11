@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))))))
 from archituner.run.siblings import cross_contract_names
 from archituner.run.siblings import sibling_contracts
+from archituner.run.siblings import sibling_tree
 
 CONTRACT = """---
 layers:
@@ -55,6 +56,10 @@ def plant(tree, rel, text):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as handle:
         handle.write(text)
+
+
+def reads_as_no_sibling(path):
+    assert sibling_tree(path) is None
 
 
 def test_sibling_contracts_are_the_siblings_owning_one():
@@ -143,9 +148,86 @@ def test_the_cross_contract_reading_skips_a_sibling_of_the_same_roots():
         "declares no package root this tree declares"
 
 
+GOOD_NAMES = {"names": [{"contract": "good", "file": "stray.py",
+                         "module": "api_"}], "contracts": ["good"]}
+GONE = "/nonexistent/target"
+
+
+def sibling(parent, name, broken):
+    tree = os.path.join(parent, name)
+    os.makedirs(tree)
+    plant(tree, "ARCHITECTURE.md", CONTRACT)
+    plant(tree, "stray.py", "import api_\n")
+    broken(tree)
+    return tree
+
+
+def gone_module(tree):
+    os.symlink(GONE, os.path.join(tree, "gone.py"))
+
+
+def sealed_gitignore(tree):
+    os.symlink(os.path.dirname(tree), os.path.join(tree, ".gitignore"))
+
+
+def undecodable_bytes(path):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as handle:
+        handle.write(b"\xff\xfe\xfa\n")
+
+
+def undecodable_contract(tree):
+    undecodable_bytes(os.path.join(tree, "ARCHITECTURE.md"))
+
+
+def own_beside(broken):
+    parent = tempfile.mkdtemp()
+    own = os.path.join(parent, "own")
+    os.makedirs(own)
+    sibling(parent, "use", broken)
+    return own
+
+
+def contributes_nothing(tree):
+    assert cross_contract_names(tree, LAYERS) is None
+
+
+def test_a_sibling_with_an_unreadable_file_contributes_nothing():
+    contributes_nothing(own_beside(gone_module))
+    contributes_nothing(own_beside(sealed_gitignore))
+    contributes_nothing(own_beside(undecodable_contract))
+
+
+def test_a_good_sibling_beside_broken_ones_still_contributes():
+    parent = tempfile.mkdtemp()
+    own = os.path.join(parent, "own")
+    os.makedirs(own)
+    plant(parent, "good/ARCHITECTURE.md", CONTRACT)
+    plant(parent, "good/stray.py", "import api_\n")
+    alone = cross_contract_names(own, LAYERS)
+    sibling(parent, "use", gone_module)
+    sibling(parent, "seal", sealed_gitignore)
+    sibling(parent, "bad", undecodable_contract)
+    os.makedirs(os.path.join(parent, "skip", "ARCHITECTURE.md"))
+    assert cross_contract_names(own, LAYERS) == alone == GOOD_NAMES
+
+
+def test_a_contract_path_that_cannot_be_read_as_a_contract_reads_as_no_sibling():
+    parent = tempfile.mkdtemp()
+    gone = os.path.join(parent, "gone", "ARCHITECTURE.md")
+    reads_as_no_sibling(gone)
+    directory = os.path.join(parent, "bad", "ARCHITECTURE.md")
+    os.makedirs(directory)
+    reads_as_no_sibling(directory)
+    undecodable = os.path.join(parent, "rough", "ARCHITECTURE.md")
+    undecodable_bytes(undecodable)
+    reads_as_no_sibling(undecodable)
+
+
 if __name__ == "__main__":
-    for name, test in sorted(globals().items()):
-        if name.startswith("test_"):
-            test()
-            print(f"PASS  {name}")
+    entries = sorted(filter(lambda item: item[0].startswith("test_"),
+                            globals().items()))
+    for _, test in entries:
+        test()
+        print(f"PASS  {_}")
     print("all green")

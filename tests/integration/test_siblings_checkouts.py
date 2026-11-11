@@ -1,4 +1,4 @@
-# covers: archituner/run/** archituner/source/**
+# covers: archituner/run/** archituner/source/** archituner/contract/**
 import os
 import subprocess
 import sys
@@ -71,7 +71,7 @@ def drive(contract):
         [sys.executable, "-m", "archituner", contract, "--json"],
         cwd=REPO, capture_output=True, timeout=120)
     assert b'"cross_contract"' in run.stdout, run.stderr
-    return run.stdout
+    return run
 
 
 def own_project(parent):
@@ -99,7 +99,8 @@ def test_a_git_worktree_beside_the_tree_is_not_a_subscriber():
     git(parent, "-C", "proj", "worktree", "add", "--detach", "../twin",
         "HEAD")
     beside = drive(contract)
-    assert alone == beside, \
+    assert beside.returncode == alone.returncode == 0, beside.stderr
+    assert alone.stdout == beside.stdout, \
         "a git worktree of this repository shares the tree's git common " \
         "dir: another checkout of the same project is not a subscriber, " \
         "so the reading is the bytes of the tree alone"
@@ -110,7 +111,8 @@ def test_a_clone_beside_the_tree_is_not_a_subscriber():
     alone = drive(contract)
     git(parent, "clone", "-q", os.path.join(parent, "proj.git"), "twin")
     beside = drive(contract)
-    assert alone == beside, \
+    assert beside.returncode == alone.returncode == 0, beside.stderr
+    assert alone.stdout == beside.stdout, \
         "a clone of this repository carries the same remote.origin.url: " \
         "another checkout of the same project is not a subscriber, so " \
         "the reading is the bytes of the tree alone"
@@ -119,6 +121,17 @@ def test_a_clone_beside_the_tree_is_not_a_subscriber():
 def test_a_genuinely_different_project_beside_is_still_a_subscriber():
     parent, contract = own_project(tempfile.mkdtemp())
     alone = drive(contract)
+    subscriber(parent)
+    beside = drive(contract)
+    assert b'"contract": "other"' in beside.stdout, beside.stdout
+    assert alone.stdout != beside.stdout, \
+        "a different project, owning its repository and declaring no " \
+        "package root this tree declares, that imports a name this tree " \
+        "exposes is a subscriber: the reading differs from the bytes of " \
+        "the tree alone"
+
+
+def subscriber(parent):
     tree = os.path.join(parent, "other")
     os.makedirs(tree)
     plant(tree, "ARCHITECTURE.md", OTHER_CONTRACT)
@@ -129,12 +142,26 @@ def test_a_genuinely_different_project_beside_is_still_a_subscriber():
     git(parent, "-C", "other", "config", "user.name", "unit")
     git(parent, "-C", "other", "add", "-A")
     git(parent, "-C", "other", "commit", "-qm", "other")
-    beside = drive(contract)
-    assert alone != beside, \
-        "a different project, owning its repository and declaring no " \
-        "package root this tree declares, that imports a name this tree " \
-        "exposes is a subscriber: the reading differs from the bytes of " \
-        "the tree alone"
+
+
+def check(contract):
+    return subprocess.run(
+        [sys.executable, "-m", "archituner", contract, "--check"],
+        cwd=REPO, capture_output=True, timeout=120)
+
+
+def test_a_sibling_with_an_unreadable_contract_does_not_change_the_check():
+    parent, contract = own_project(tempfile.mkdtemp())
+    alone = check(contract)
+    os.makedirs(os.path.join(parent, "bad", "ARCHITECTURE.md"))
+    beside = check(contract)
+    assert alone.returncode == beside.returncode == 0, beside.stderr
+    assert beside.stdout == alone.stdout, \
+        "a sibling whose contract cannot be read is no subscriber: the " \
+        "check is the bytes of the tree alone"
+    assert b"Traceback" not in beside.stderr, \
+        "a sibling whose contract cannot be read is no subscriber: an " \
+        "unreadable sibling contract never crashes the check"
 
 
 if __name__ == "__main__":

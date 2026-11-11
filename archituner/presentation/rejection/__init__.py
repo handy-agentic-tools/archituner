@@ -1,0 +1,1 @@
+from archituner.presentation.rejection.rejection import render_rejection

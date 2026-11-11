@@ -40,6 +40,9 @@ def carried(out):
 def test_given_no_paths_every_test_runs():
     tree = scratch_tree()
     plant(tree, "tests/unit/scratch/test_x.py", RUNS)
+    plant(tree, "tests/unit/scratch/deep/test_y.py", RUNS)
+    plant(tree, "tests/unit/scratch/deep/deeper/test_z.py", RUNS)
+    plant(tree, "tests/unit/scratch/deep/helper.py", RUNS)
     plant(tree, "tests/integration/test_flow.py", COVERS_SCRATCH)
     plant(tree, "tests/lints/test_one.py", COVERS_SCRATCH)
     plant(tree, "tests/lints/test_bare.py", RUNS)
@@ -47,6 +50,8 @@ def test_given_no_paths_every_test_runs():
     assert proc.returncode == 0, (proc.returncode, proc.stdout, proc.stderr)
     assert carried(proc.stdout) == {
         "tests/unit/scratch/test_x.py",
+        "tests/unit/scratch/deep/test_y.py",
+        "tests/unit/scratch/deep/deeper/test_z.py",
         "tests/integration/test_flow.py",
         "tests/lints/test_one.py",
         "tests/lints/test_bare.py"}, proc.stdout

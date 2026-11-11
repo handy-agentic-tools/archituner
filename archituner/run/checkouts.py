@@ -52,7 +52,7 @@ def git_text(tree, *args):
 def contract_roots(tree):
     try:
         contract = read_contract(os.path.join(tree, "ARCHITECTURE.md"))
-    except (OSError, SystemExit):
+    except (OSError, SystemExit, UnicodeDecodeError):
         return set()
     return package_roots(contract.layers)
 

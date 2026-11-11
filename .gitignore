@@ -1,0 +1,12 @@
+.DS_Store
+archituner.html
+*.png
+__pycache__/
+.archituner-baseline.json
+*.egg-info/
+build/
+dist/
+.venv/
+fixtures.local.json
+.plan-run/
+.claude/

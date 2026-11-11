@@ -59,7 +59,8 @@ def covers_of(rel):
 
 
 def every_test():
-    found = sorted(glob.glob(os.path.join(at(UNIT), "*", "test_*.py")))
+    found = sorted(glob.glob(os.path.join(at(UNIT), "**", "test_*.py"),
+                             recursive=True))
     tests = [os.path.relpath(path, ROOT).replace(os.sep, "/")
              for path in found]
     tests.extend(files_of(FLOWS))
