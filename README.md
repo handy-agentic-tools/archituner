@@ -121,6 +121,10 @@ Coding with an agent from a phone or a cloud session means reading results in a 
 | db | · | · |   |
 ```
 
+## See it on one page
+
+`archituner ARCHITECTURE.md -o archituner.html` writes the whole reading as one self-contained page. Open `archituner.html` in a browser: it opens on the layers stack, with the pair matrix and coverage treemap as the other views and a panel beside them. It reads on a phone.
+
 ## Every room gets inspected too
 
 Besides what rests on what, the supervisor measures each file and function against limits written in the plan:
@@ -233,6 +237,7 @@ archituner checks the plan too: it refuses a plan that leaves a pair undecided, 
 | --- | --- |
 | `archituner ARCHITECTURE.md` | the check: every deviation, limit breach and plan finding, each deviation with its fix; exit 1 on any |
 | `--report` (`--format md`) | the whole reading in the terminal, or as Markdown for a pull request comment |
+| `-o <file>` | the whole reading as one self-contained page, plus the counts on stdout |
 | `--json` | the whole reading as one JSON document, for an agent or a script: per floor what it uses and what uses it (`uses`, `used_by`), how many steps it sits from the program's entry point (`chain`), and the longest chain of imports (`shape.longest_chain`, e.g. `cli -> run -> conformance -> vocabulary`) |
 | `--baseline` | stores this reading; later runs show what moved since |
 | `--version` | the version |
@@ -270,10 +275,9 @@ cp -R archituner/agents-skills/skills/* ~/.agents/skills/
 - `from pkg import gone` with gone an absent module still counts as an edge to pkg, because a name defined in pkg cannot be told from a missing module without reading pkg's names.
 - Files your `.gitignore` excludes are never walked, and a file that does not parse is read as having no imports.
 - Your own package named like a standard library module (a local `json` or `logging`) is never judged.
-- Files under `ignore` escape the unclaimed-file check: this repository's `plans/repro_*.py` scripts stay open, nine of them import the tool in-process, and closing that route is its own issue.
+- Files under `ignore` escape the unclaimed-file check.
 - It supervises the floors, what rests on what, and the limits. It does not replace tests or code review.
-- Version 0.1.0. The plan's format may still change.
-- No interactive page yet: it comes in the next release.
+- Version 0.2.0. The plan's format may still change.
 
 </details>
 
@@ -299,10 +303,9 @@ The last line is archituner supervising its own code.
 
 archituner is built in the open, one release at a time. No dates, only the order.
 
-1. **The plan and the build, on one page.** An interactive page that draws your floors, what rests on what, and every deviation. Designed for a phone first, so you can read it during remote vibe coding. It ships with its own agent skill.
-2. **Copy-paste detection.** The supervisor finds functions whose bodies are duplicated across your project.
-3. **The page in your terminal.** The same views, without leaving the shell.
-4. **More languages.** The plan format is not tied to Python; other languages can be read by adapters over the same format.
+1. **Copy-paste detection.** The supervisor finds functions whose bodies are duplicated across your project.
+2. **The page in your terminal.** The same views, without leaving the shell.
+3. **More languages.** The plan format is not tied to Python; other languages can be read by adapters over the same format.
 
 Have a need that is not on the list? [Open a feature request](https://github.com/handy-agentic-tools/archituner/issues/new/choose).
 
