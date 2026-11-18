@@ -274,10 +274,11 @@ cp -R archituner/agents-skills/skills/* ~/.agents/skills/
 - Python projects only, and only import statements are judged: dynamic imports (`importlib.import_module`, `__import__`) are invisible.
 - `from pkg import gone` with gone an absent module still counts as an edge to pkg, because a name defined in pkg cannot be told from a missing module without reading pkg's names.
 - Files your `.gitignore` excludes are never walked, and a file that does not parse is read as having no imports.
-- Your own package named like a standard library module (a local `json` or `logging`) is never judged.
 - Files under `ignore` escape the unclaimed-file check.
+- The stack's arrows enter at the band's edge, so a sublayer's entry dock stands before its indented box by one indent step; a future issue moves the docks with the indent.
+- A `package_root` with several segments (`src/pkg`, `a/b`) is matched by its last segment: an absolute import such as `from pkg.model import X` resolves, an import by the full dotted path (`from a.b.model import X`) does not, and relative imports reach the package either way.
 - It supervises the floors, what rests on what, and the limits. It does not replace tests or code review.
-- Version 0.2.0. The plan's format may still change.
+- Version 0.2.1. The plan's format may still change.
 
 </details>
 

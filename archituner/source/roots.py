@@ -26,6 +26,15 @@ def import_root(layers, declared):
     return wanted + "/", (), ()
 
 
+def declared_name(package_root):
+    if not package_root:
+        return None
+    stripped = package_root.strip("/")
+    if stripped in ("", "."):
+        return None
+    return stripped.rsplit("/", 1)[-1]
+
+
 def _glob_dir(glob):
     static = glob.split("*", 1)[0]
     return static if static.endswith("/") else static + "/"

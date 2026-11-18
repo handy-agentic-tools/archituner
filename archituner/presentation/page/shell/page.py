@@ -4,6 +4,7 @@ import json
 from archituner.presentation.model.column_layout import column
 from archituner.presentation.model.layout import regions
 from archituner.presentation.model.stack_layout import stack
+from archituner.presentation.model.stack_rows import display_order
 from archituner.presentation.page.shell.events import SCRIPT as EVENTS
 from archituner.presentation.page.shell.shell import BODY
 from archituner.presentation.page.shell.shell import CLOSE
@@ -62,9 +63,12 @@ def spent(shell, ground, label):
 
 
 def payload_of(result):
+    rows = display_order(
+        result["order"],
+        [row["name"] for row in result["shape"]["per_layer"]])
     return dict(result, regions=regions(result["coverage"]),
-                stack=stack(result["order"], result["pairs"]),
-                stack_narrow=column(result["order"], result["pairs"]),
+                stack=stack(rows, result["pairs"]),
+                stack_narrow=column(rows, result["pairs"]),
                 overview=panel_overview(result))
 
 

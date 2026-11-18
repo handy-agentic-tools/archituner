@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- A sibling project's contract that vanishes or cannot be read no longer crashes `--check`; it is treated as no sibling.
+- The sibling scan no longer crashes `--check` on a sibling whose files cannot be read, or whose contract or `.gitignore` cannot be decoded: such a sibling is treated as not there, and the siblings beside it still contribute.
+
+## 0.2.1 - 2026-11-18
+
+A patch release: the check resolves more imports, and the layers stack shows sublayers.
+
+- Imports from outside a declared package root and imports into a layer named like a standard-library module are now resolved, so a forbid edge out of a test layer or into e.g. a `math` layer is checked (they were reported as absences they were not); a bare `import math` still means the standard library.
+- The layers stack places each sublayer directly below its parent, indented one step, in the wide stack and the narrow column alike; parents keep the dependency order and one parent's sublayers keep the order the contract declares them in, while the report and `--json` keep the dependency order whole.
+
 ## 0.2.0 - 2026-11-11
 
 A minor release: the interactive page ships, written with `-o`.
@@ -14,9 +24,6 @@ A minor release: the interactive page ships, written with `-o`.
 - When a search finds more records than the eight its row shows, the row says how many: the results row ends with "8 of N", so the cap at eight no longer reads as the whole match; Escape clears the search field first.
 - All large explanatory labels are gone from the page: the sentence that opened each view, the empty-state sentence, the provenance and dropped-pair lines, the coverage caption and tally sentence, the panel hint and panel captions, and every move explanation leave the page for the Help; the verdict headline, control names, values, aria-labels and tooltips stay.
 - A name holding an apostrophe, an ampersand, a less-than or a quote no longer truncates the page: every measured name reaches its attribute and its text through one escape, so the page shows it whole and a click on it selects what it names.
-- A sibling project's contract that vanishes or cannot be read no longer crashes `--check`; it is treated as no sibling.
-- The sibling scan no longer crashes `--check` on a sibling whose files cannot be read, or whose contract or `.gitignore` cannot be decoded: such a sibling is treated as not there, and the siblings beside it still contribute.
-
 ## 0.1.3 - 2026-11-07
 
 A patch release: the check gets stricter.

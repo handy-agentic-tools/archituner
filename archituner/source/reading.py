@@ -1,5 +1,6 @@
 import ast
 import os
+import sys
 
 
 def relative_base(own_module, is_init, level):
@@ -17,13 +18,15 @@ def from_stem(node, own_module, is_init):
 
 def import_entries(node, own_module, is_init):
     if isinstance(node, ast.Import):
-        return [(alias.name, node.lineno, False) for alias in node.names]
+        return [(alias.name, node.lineno, False, False)
+                for alias in node.names]
     if not isinstance(node, ast.ImportFrom):
         return []
     stem = from_stem(node, own_module, is_init)
-    aliases = [(f"{stem}.{alias.name}", node.lineno, True)
+    relative = bool(node.level)
+    aliases = [(f"{stem}.{alias.name}", node.lineno, True, relative)
                for alias in node.names]
-    return [(stem, node.lineno, False)] + aliases
+    return [(stem, node.lineno, False, relative)] + aliases
 
 
 def imports_of(tree, path, own_module):
@@ -52,6 +55,17 @@ def judging_pair(src, tgt):
     while parent_name(a) != parent_name(b):
         a, b = a.rpartition(".")[0], b.rpartition(".")[0]
     return a, b
+
+
+def index_name(module, relative, declared):
+    if relative:
+        return module
+    head, _dot, rest = module.partition(".")
+    if head == declared:
+        return rest
+    if head in sys.stdlib_module_names:
+        return None
+    return module
 
 
 def resolved_path(candidate, path_by_module, prefixes, may_be_name=False):
