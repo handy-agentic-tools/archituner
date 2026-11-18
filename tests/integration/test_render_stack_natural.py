@@ -96,10 +96,12 @@ def test_the_phone_column_is_the_stack_at_its_own_size():
         "it 366 - 8 unit margins, a 144 unit band and 200 unit boxes")
     nodes = narrow.get("nodes") or []
     wrong = list(filter(
-        lambda n: (n["x"], n["width"], n["height"]) != (158, 200, 30), nodes))
+        lambda n: (n["x"], n["width"], n["height"])
+        != (158 + 12 * n["name"].count("."),
+            200 - 12 * n["name"].count("."), 30), nodes))
     assert not wrong, ("issue 283: the phone's boxes are not two-row 200 "
-        "unit boxes at the band's edge, the stack at its own size rather "
-        "than a shrunken column: " + json.dumps(wrong))
+        "unit boxes at the band's edge, a sublayer indented one step under "
+        "its parent: " + json.dumps(wrong))
     lanes = [w.get("l") for w in (narrow.get("wires") or {}).values()]
     assert min(lanes, default=0) >= 8, ("issue 283: a phone wire runs left "
         "of the 8 unit margin: " + json.dumps(lanes))

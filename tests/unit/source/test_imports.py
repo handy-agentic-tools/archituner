@@ -84,6 +84,19 @@ def test_an_exact_module_resolves_to_its_path():
         "pkg.mod", by_module, ()) == "pkg/mod.py", by_module
 
 
+def test_an_already_stripped_name_resolves_under_a_declared_root():
+    by_module = {"model": "pkg/model/__init__.py",
+                 "model.shapes": "pkg/model/shapes.py"}
+    assert archituner.source.imports.resolve(
+        "model", by_module, ()) == "pkg/model/__init__.py", by_module
+
+
+def test_a_stdlib_name_matching_no_walked_module_stays_unresolved():
+    by_module = {"model": "pkg/model/__init__.py"}
+    assert archituner.source.imports.resolve(
+        "math", by_module, ()) is None, by_module
+
+
 def test_a_name_inside_a_present_module_still_resolves():
     tree, records, by_module = planted("from pkg.mod import name\n")
     archituner.source.imports.resolve_imports(tree, records, by_module, None)
@@ -119,6 +132,8 @@ TESTS = (test_package_root_dot_names_from_tree_root,
          test_declared_subtree_root_still_names_as_before,
          test_an_import_from_a_sublayer_is_judged_by_its_ancestors_pair,
          test_an_exact_module_resolves_to_its_path,
+         test_an_already_stripped_name_resolves_under_a_declared_root,
+         test_a_stdlib_name_matching_no_walked_module_stays_unresolved,
          test_a_name_inside_a_present_module_still_resolves,
          test_a_from_import_of_an_absent_module_adds_no_entry_and_no_edge,
          test_an_import_of_an_absent_module_adds_no_entry_and_no_edge,

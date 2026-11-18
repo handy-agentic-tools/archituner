@@ -50,7 +50,8 @@ def read_surface(tree, files, order, pairs):
 
 def file_uses(tree, label, path, roots):
     return [{"contract": label, "file": path, "module": module}
-            for module, _line, _may_be_name in imports_of(tree, path, "")
+            for module, _line, _may_be_name, _relative
+            in imports_of(tree, path, "")
             if module.split(".")[0] in roots]
 
 

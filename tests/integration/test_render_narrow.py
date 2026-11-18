@@ -119,9 +119,11 @@ def test_the_narrow_figure_is_one_column_of_two_row_boxes():
     data = data_of()
     narrow = figure_of(data)
     names = list(map(lambda node: node["name"], narrow["nodes"]))
-    assert names == data["order"], ("the narrow figure is not one column "
-        "of every layer the page's own order carries, in dependency "
-        "order: " + json.dumps(names))
+    assert names == list(map(lambda node: node["name"],
+                             data["stack"]["nodes"])), (
+        "the narrow figure is not one column of every layer the wide stack "
+        "carries, a sublayer directly below its parent: "
+        + json.dumps(names))
     wide_row = data["stack"]["nodes"][0]["height"]
     shallow = list(filter(lambda node: node["height"] <= wide_row,
                           narrow["nodes"]))
@@ -129,8 +131,9 @@ def test_the_narrow_figure_is_one_column_of_two_row_boxes():
         "wide box's own one row, and holds neither the name above nor the "
         "four cells below: " + json.dumps(shallow))
     half = narrow["width"] / 2
-    squeezed = list(filter(lambda node: node["width"] <= half,
-                           narrow["nodes"]))
+    squeezed = list(filter(
+        lambda node: node["x"] + node["width"] - 158 <= half,
+        narrow["nodes"]))
     assert not squeezed, ("a narrow box spans less than half the column, "
         "so the figure is a grid of cards rather than one column: "
         + json.dumps(squeezed))

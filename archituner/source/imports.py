@@ -1,6 +1,5 @@
-import sys
-
 from archituner.source.reading import imports_of
+from archituner.source.reading import index_name
 from archituner.source.reading import judging_pair
 from archituner.source.reading import resolved_path
 
@@ -15,13 +14,19 @@ def module_of(path, root):
     return ".".join(parts)
 
 
-def resolve(module, path_by_module, prefix_pkg=None, may_be_name=False):
-    prefixes = (prefix_pkg,) if isinstance(prefix_pkg, str) else tuple(prefix_pkg or ())
+def candidates(module, relative, declared, prefixes):
+    base = index_name(module, relative, declared)
+    if not base:
+        return []
+    return [base] + [f"{p}.{base}" for p in prefixes]
+
+
+def resolve(module, path_by_module, prefix_pkg=None, may_be_name=False,
+            relative=False, declared=None):
     if not module:
         return None
-    if module.split(".")[0] in sys.stdlib_module_names:
-        return None
-    for candidate in [module] + [f"{p}.{module}" for p in prefixes]:
+    prefixes = (prefix_pkg,) if isinstance(prefix_pkg, str) else tuple(prefix_pkg or ())
+    for candidate in candidates(module, relative, declared, prefixes):
         target = resolved_path(candidate, path_by_module, prefixes,
                                may_be_name)
         if target is not None:
@@ -30,8 +35,10 @@ def resolve(module, path_by_module, prefix_pkg=None, may_be_name=False):
 
 
 def resolved_import(path, record, files, path_by_module, retry_prefix,
-                    edges, module, line, may_be_name):
-    target = resolve(module, path_by_module, retry_prefix, may_be_name)
+                    edges, module, line, may_be_name, relative=False,
+                    declared=None):
+    target = resolve(module, path_by_module, retry_prefix, may_be_name,
+                     relative=relative, declared=declared)
     if target is None or target == path:
         return
     record["imports"].append({"module": module, "path": target,
@@ -45,21 +52,24 @@ def resolved_import(path, record, files, path_by_module, retry_prefix,
 
 
 def resolve_file_imports(tree, path, record, files, path_by_module,
-                         retry_prefix, edges):
+                         retry_prefix, edges, declared=None):
     own_module = record["module"] or ""
-    for module, line, may_be_name in imports_of(tree, path, own_module):
+    for module, line, may_be_name, relative in imports_of(tree, path,
+                                                          own_module):
         resolved_import(path, record, files, path_by_module, retry_prefix,
-                        edges, module, line, may_be_name)
+                        edges, module, line, may_be_name, relative,
+                        declared=declared)
 
 
 def claimed(record):
     return record["layer"] is not None or record["module"] is not None
 
 
-def resolve_imports(tree, files, path_by_module, retry_prefix):
+def resolve_imports(tree, files, path_by_module, retry_prefix,
+                    declared=None):
     edges = {}
     for path, record in files.items():
         if claimed(record):
             resolve_file_imports(tree, path, record, files, path_by_module,
-                                 retry_prefix, edges)
+                                 retry_prefix, edges, declared=declared)
     return edges

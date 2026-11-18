@@ -4,6 +4,7 @@ from archituner.source.imports import resolve
 from archituner.source.imports import resolve_imports
 from archituner.source.limits import measure_limits
 from archituner.source.reading import relative_base
+from archituner.source.roots import declared_name
 from archituner.source.roots import import_root
 from archituner.source.surface import cross_contract_uses
 from archituner.source.surface import read_surface

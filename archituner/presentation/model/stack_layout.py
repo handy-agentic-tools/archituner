@@ -1,10 +1,12 @@
 from archituner.presentation.model.layout import stack_geometry
 from archituner.presentation.model.layout import UNIT
+from archituner.presentation.model.stack_rows import depth_of
 from archituner.presentation.model.stack_wires import routed
 from archituner.presentation.model.stack_wires import spell
 
 INSET = UNIT * 8
 NUDGE = UNIT * 0.5
+INDENT = UNIT * 12
 HEADER_Y = UNIT * 10
 IN, OUT = UNIT * 1, -UNIT * 1
 
@@ -35,8 +37,9 @@ def stage(g, order, pairs, wide):
             "hop": spell(g["hop"]),
             "centres": [spell(edge - cell * (4 - k) + cell / 2)
                         for k in range(4)],
-            "nodes": [{"name": name, "x": spell(box),
-                       "y": g["pad"] + i * g["row"], "width": g["node_w"],
+            "nodes": [{"name": name, "x": spell(box + INDENT * depth_of(name)),
+                       "y": g["pad"] + i * g["row"],
+                       "width": g["node_w"] - INDENT * depth_of(name),
                        "height": g["node_h"]}
                       for i, name in enumerate(order)],
             "wires": wires}

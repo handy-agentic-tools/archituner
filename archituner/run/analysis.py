@@ -15,6 +15,7 @@ from archituner.contract import read_contract
 from archituner.run.prose import measure_prose
 from archituner.run.siblings import cross_contract_names
 from archituner.source import claim_files
+from archituner.source import declared_name
 from archituner.source import import_root
 from archituner.source import measure_limits
 from archituner.source import read_surface
@@ -36,12 +37,14 @@ def analyse(contract_path, stored=None):
     findings = list(contract.findings)
 
     root, retry_prefix, packages = import_root(layers, package_root)
+    declared = declared_name(package_root)
 
     files, path_by_module, claim_findings, claims = claim_files(
         tree, layers, root, packages, ignore=contract.ignore)
     findings += claim_findings
 
-    edges = resolve_imports(tree, files, path_by_module, retry_prefix)
+    edges = resolve_imports(tree, files, path_by_module, retry_prefix,
+                            declared=declared)
     claims += unclaimed_findings(files)
 
     sections = prose_sections(body)
